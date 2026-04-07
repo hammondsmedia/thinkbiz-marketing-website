@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -10,9 +10,15 @@ interface MobileMenuProps {
   items: NavItem[]
 }
 
+// Selector for all keyboard-focusable elements
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
 export default function MobileMenu({ items }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const drawerRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
   // Close on route change
   useEffect(() => { setIsOpen(false) }, [pathname])
@@ -23,17 +29,64 @@ export default function MobileMenu({ items }: MobileMenuProps) {
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
+  // Escape key closes the menu
+  useEffect(() => {
+    if (!isOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false)
+        triggerRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [isOpen])
+
+  // Focus trap — confine Tab / Shift+Tab to drawer elements
+  useEffect(() => {
+    if (!isOpen || !drawerRef.current) return
+
+    const drawer = drawerRef.current
+    const focusableEls = Array.from(drawer.querySelectorAll<HTMLElement>(FOCUSABLE))
+    const first = focusableEls[0]
+    const last = focusableEls[focusableEls.length - 1]
+
+    // Move focus into the drawer on open
+    first?.focus()
+
+    const trap = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault()
+          last?.focus()
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault()
+          first?.focus()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', trap)
+    return () => document.removeEventListener('keydown', trap)
+  }, [isOpen])
+
   return (
     <>
       {/* Hamburger / close toggle — visible on mobile only */}
       <button
+        ref={triggerRef}
         onClick={() => setIsOpen((v) => !v)}
         className="md:hidden p-2 rounded-lg text-gray-600
                    hover:text-primary hover:bg-primary-50
-                   transition-colors duration-200"
+                   transition-colors duration-200
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={isOpen}
         aria-controls="mobile-nav"
+        aria-haspopup="dialog"
       >
         {isOpen ? (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -55,7 +108,7 @@ export default function MobileMenu({ items }: MobileMenuProps) {
         )}
       </button>
 
-      {/* Backdrop */}
+      {/* Backdrop — closes menu on outside click */}
       <div
         onClick={() => setIsOpen(false)}
         aria-hidden="true"
@@ -67,6 +120,7 @@ export default function MobileMenu({ items }: MobileMenuProps) {
       {/* Drawer */}
       <div
         id="mobile-nav"
+        ref={drawerRef}
         role="dialog"
         aria-modal="true"
         aria-label="Mobile navigation"
@@ -90,7 +144,9 @@ export default function MobileMenu({ items }: MobileMenuProps) {
           </Link>
           <button
             onClick={() => setIsOpen(false)}
-            className="p-2 rounded-lg text-gray-500 hover:text-primary hover:bg-primary-50 transition-colors"
+            className="p-2 rounded-lg text-gray-500 hover:text-primary hover:bg-primary-50
+                       transition-colors focus-visible:outline-none focus-visible:ring-2
+                       focus-visible:ring-primary"
             aria-label="Close menu"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -104,22 +160,29 @@ export default function MobileMenu({ items }: MobileMenuProps) {
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 overflow-y-auto px-4 py-6">
+        <nav className="flex-1 overflow-y-auto px-4 py-6" aria-label="Mobile navigation links">
           <ul className="space-y-1">
-            {items.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center px-4 py-3 rounded-lg text-base font-medium
-                              transition-colors duration-200
-                              ${pathname === item.href
-                                ? 'bg-primary-50 text-primary'
-                                : 'text-gray-700 hover:bg-gray-50 hover:text-primary'}`}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
+            {items.map((item) => {
+              const isActive =
+                item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`flex items-center px-4 py-3 rounded-lg text-base font-medium
+                                transition-colors duration-200
+                                ${
+                                  isActive
+                                    ? 'bg-primary-50 text-primary'
+                                    : 'text-gray-700 hover:bg-gray-50 hover:text-primary'
+                                }`}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              )
+            })}
           </ul>
         </nav>
 
@@ -130,7 +193,9 @@ export default function MobileMenu({ items }: MobileMenuProps) {
             className="flex items-center justify-center w-full
                        px-6 py-3 bg-primary text-white
                        text-base font-semibold rounded-lg
-                       hover:bg-primary-dark transition-colors duration-200"
+                       hover:bg-primary-dark transition-colors duration-200
+                       focus-visible:outline-none focus-visible:ring-2
+                       focus-visible:ring-primary focus-visible:ring-offset-2"
             onClick={() => setIsOpen(false)}
           >
             Get Started

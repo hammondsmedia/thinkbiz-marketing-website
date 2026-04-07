@@ -133,7 +133,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         {/*
           3. GTM — Client Component, loads afterInteractive.
              Consent state is already established by steps 1 + 2 above.
@@ -144,7 +144,7 @@ export default function RootLayout({
         <OrganizationSchema />
 
         <Header />
-        <main>{children}</main>
+        <main className="flex-1">{children}</main>
         <Footer />
       </body>
     </html>
