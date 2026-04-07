@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
 import localFont from 'next/font/local'
+import GTMProvider from '@/components/analytics/GTMProvider'
+import OrganizationSchema from '@/components/seo/OrganizationSchema'
 import '@/styles/globals.css'
 
 // ---------------------------------------------------------------------------
-// Fonts — Geist is already bundled by create-next-app
+// Fonts — Geist Sans (heading + body) and Geist Mono (code blocks)
+// Both are already bundled by create-next-app; swap for custom fonts in step 03
 // ---------------------------------------------------------------------------
 
 const geistSans = localFont({
@@ -22,7 +25,7 @@ const geistMono = localFont({
 })
 
 // ---------------------------------------------------------------------------
-// Site constants — replace PLACEHOLDER_* values in project-brief.md + .env.local
+// Site constants
 // ---------------------------------------------------------------------------
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
@@ -30,7 +33,30 @@ const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID
 const COOKIEYES_ID = process.env.NEXT_PUBLIC_COOKIEYES_ID
 
 // ---------------------------------------------------------------------------
-// Base metadata — child pages override via generateMetadata()
+// GTM Consent Mode v2 — default consent state.
+// This MUST run synchronously in <head> before CookieYes and GTM load.
+// All consent categories start denied; CookieYes fires the update event.
+// ---------------------------------------------------------------------------
+
+const consentDefaultsScript = `
+window.dataLayer=window.dataLayer||[];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{
+  'ad_storage':'denied',
+  'ad_user_data':'denied',
+  'ad_personalization':'denied',
+  'analytics_storage':'denied',
+  'functionality_storage':'denied',
+  'personalization_storage':'denied',
+  'security_storage':'granted',
+  'wait_for_update':500
+});
+gtag('set','ads_data_redaction',true);
+gtag('set','url_passthrough',true);
+`.trim()
+
+// ---------------------------------------------------------------------------
+// Base metadata — child pages call generateMetadata() to override per-page
 // ---------------------------------------------------------------------------
 
 export const metadata: Metadata = {
@@ -44,11 +70,17 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'ThinkBiz',
     locale: 'en_US',
+    // TODO: add /images/og-default.jpg when created
   },
   twitter: {
     card: 'summary_large_image',
     site: '@PLACEHOLDER_TWITTER',
     creator: '@PLACEHOLDER_TWITTER',
+  },
+  alternates: {
+    types: {
+      'application/rss+xml': `${SITE_URL}/rss.xml`,
+    },
   },
   robots: {
     index: true,
@@ -64,33 +96,6 @@ export const metadata: Metadata = {
 }
 
 // ---------------------------------------------------------------------------
-// Organization schema — injected on every page via root layout
-// Update sameAs, logo, contactPoint once project-brief.md is finalised.
-// ---------------------------------------------------------------------------
-
-const organizationSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'ThinkBiz',
-  url: SITE_URL,
-  logo: {
-    '@type': 'ImageObject',
-    url: `${SITE_URL}/images/thinkbiz-horizontal-logo.svg`,
-  },
-  contactPoint: {
-    '@type': 'ContactPoint',
-    email: 'PLACEHOLDER_EMAIL',
-    contactType: 'customer service',
-    availableLanguage: 'English',
-  },
-  // TODO: replace placeholders once project-brief.md is finalised
-  sameAs: [
-    'https://www.linkedin.com/company/PLACEHOLDER_LINKEDIN_SLUG',
-    'https://twitter.com/PLACEHOLDER_TWITTER',
-  ],
-}
-
-// ---------------------------------------------------------------------------
 // Root layout
 // ---------------------------------------------------------------------------
 
@@ -101,9 +106,14 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/*
-          CookieYes must load BEFORE GTM so GTM Consent Mode v2 picks up the
-          consent state on the first pageview. beforeInteractive injects into
-          <head> before any React hydration occurs.
+          1. Consent defaults — synchronous inline script, runs first.
+             Establishes denied-by-default state before any analytics load.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: consentDefaultsScript }} />
+
+        {/*
+          2. CookieYes — beforeInteractive so it runs in <head> before GTM.
+             Fires the CookieYes consent update event that GTM listens for.
         */}
         {COOKIEYES_ID && (
           <Script
@@ -112,42 +122,26 @@ export default function RootLayout({
           />
         )}
 
-        {/* Organization schema — present on every page */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        {/* RSS feed auto-discovery */}
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="ThinkBiz Blog RSS Feed"
+          href={`${SITE_URL}/rss.xml`}
         />
       </head>
 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* GTM noscript fallback — must be immediately after <body> */}
-        {GTM_ID && (
-          <noscript>
-            <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-              height="0"
-              width="0"
-              style={{ display: 'none', visibility: 'hidden' }}
-            />
-          </noscript>
-        )}
+        {/*
+          3. GTM — Client Component, loads afterInteractive.
+             Consent state is already established by steps 1 + 2 above.
+        */}
+        {GTM_ID && <GTMProvider gtmId={GTM_ID} />}
+
+        {/* Organization schema — Server Component, present on every page */}
+        <OrganizationSchema />
 
         {children}
-
-        {/* GTM — afterInteractive; consent state already set by CookieYes above */}
-        {GTM_ID && (
-          <Script
-            id="gtm"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${GTM_ID}');`,
-            }}
-          />
-        )}
       </body>
     </html>
   )
