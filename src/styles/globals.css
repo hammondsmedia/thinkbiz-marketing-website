@@ -1,0 +1,19 @@
+/* TODO: Step 03 will replace this with full design token system */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Brand colors — from project-brief.md */
+  --color-primary:   #086788;
+  --color-secondary: #21bdc8;
+  --color-accent:    #f0c808;
+  --color-white:     #ffffff;
+  --color-gray-50:   #f9fafb;
+  --color-gray-900:  #111827;
+}
+
+body {
+  color: var(--color-gray-900);
+  background: var(--color-white);
+}
