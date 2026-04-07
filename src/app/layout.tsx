@@ -3,6 +3,8 @@ import Script from 'next/script'
 import localFont from 'next/font/local'
 import GTMProvider from '@/components/analytics/GTMProvider'
 import OrganizationSchema from '@/components/seo/OrganizationSchema'
+import Header from '@/components/layout/Header'
+import Footer from '@/components/layout/Footer'
 import '@/styles/globals.css'
 
 // ---------------------------------------------------------------------------
@@ -141,7 +143,9 @@ export default function RootLayout({
         {/* Organization schema — Server Component, present on every page */}
         <OrganizationSchema />
 
-        {children}
+        <Header />
+        <main>{children}</main>
+        <Footer />
       </body>
     </html>
   )
