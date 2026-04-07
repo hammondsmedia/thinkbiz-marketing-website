@@ -165,12 +165,15 @@ const config: Config = {
       // CONTAINER / MAX-WIDTH
       // -----------------------------------------------------------------------
       maxWidth: {
-        prose: 'var(--container-prose)',
-        sm:    'var(--container-sm)',
-        md:    'var(--container-md)',
-        lg:    'var(--container-lg)',
-        xl:    'var(--container-xl)',
-        '2xl': 'var(--container-2xl)',
+        prose:   'var(--container-prose)',
+        sm:      'var(--container-sm)',
+        md:      'var(--container-md)',
+        lg:      'var(--container-lg)',
+        xl:      'var(--container-xl)',
+        '2xl':   'var(--container-2xl)',
+        // Semantic aliases — match Container.tsx and CSS variable names
+        site:    'var(--max-width)',
+        content: 'var(--content-width)',
       },
     },
   },

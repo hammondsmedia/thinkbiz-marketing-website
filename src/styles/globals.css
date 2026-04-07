@@ -201,6 +201,10 @@
   --container-2xl:  1536px;
   --container-prose:65ch;
 
+  /* Semantic aliases — used by Container.tsx and tailwind.config.ts */
+  --max-width:      1280px;   /* site-wide max content width */
+  --content-width:  720px;    /* article / single-column content width */
+
   --header-height:  4rem;    /* 64 px — used for scroll-margin-top on anchors */
 }
 

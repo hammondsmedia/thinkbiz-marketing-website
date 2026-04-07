@@ -1,9 +1,14 @@
 import type { Metadata } from 'next'
+import Button from '@/components/ui/Button'
+import Container from '@/components/ui/Container'
+import SectionHeading from '@/components/ui/SectionHeading'
 
 // Hidden from nav. Blocked in robots.txt (step 11). Noindexed here.
-export const metadata: Metadata = {
-  title: 'Style Guide',
-  robots: { index: false, follow: false },
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: 'Style Guide',
+    robots: { index: false, follow: false },
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -22,30 +27,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-xs font-mono text-gray-500 mt-2 truncate">{children}</p>
-  )
+  return <p className="text-xs font-mono text-gray-500 mt-2 truncate">{children}</p>
 }
 
-// ---------------------------------------------------------------------------
-// Color swatch
-// ---------------------------------------------------------------------------
-
-function Swatch({
-  bg,
-  label,
-  light = false,
-}: {
-  bg: string
-  label: string
-  light?: boolean
-}) {
+function Swatch({ bg, label, light = false }: { bg: string; label: string; light?: boolean }) {
   return (
     <div className="flex flex-col">
-      <div
-        className="h-16 w-full rounded-lg border border-gray-200"
-        style={{ background: bg }}
-      />
+      <div className="h-16 w-full rounded-lg border border-gray-200" style={{ background: bg }} />
       <Label>{label}</Label>
       <p className={`text-xs ${light ? 'text-gray-400' : 'text-gray-700'}`}>{bg}</p>
     </div>
@@ -58,13 +46,14 @@ function Swatch({
 
 export default function StyleGuidePage() {
   return (
-    <main className="max-w-5xl mx-auto px-6 py-16">
+    <Container className="py-16">
       <header className="mb-16">
         <p className="text-sm font-mono text-primary mb-2">Internal reference — not indexed</p>
         <h1 className="text-5xl font-bold text-gray-900 mb-4">ThinkBiz Style Guide</h1>
         <p className="text-lg text-gray-500">
           All design tokens, typography scales, components, and usage patterns.
-          Tokens live in <code className="text-sm bg-gray-100 px-1.5 py-0.5 rounded">src/styles/globals.css</code>{' '}
+          Tokens live in{' '}
+          <code className="text-sm bg-gray-100 px-1.5 py-0.5 rounded">src/styles/globals.css</code>{' '}
           and are wired into Tailwind via{' '}
           <code className="text-sm bg-gray-100 px-1.5 py-0.5 rounded">tailwind.config.ts</code>.
         </p>
@@ -98,17 +87,13 @@ export default function StyleGuidePage() {
       <Section title="Gradients">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <div
-              className="h-20 rounded-lg"
-              style={{ background: 'linear-gradient(180deg, #21bdc8 0%, #086788 100%)' }}
-            />
+            <div className="h-20 rounded-lg"
+              style={{ background: 'linear-gradient(180deg,#21bdc8 0%,#086788 100%)' }} />
             <Label>--gradient-brand (vertical)</Label>
           </div>
           <div>
-            <div
-              className="h-20 rounded-lg"
-              style={{ background: 'linear-gradient(90deg, #086788 0%, #21bdc8 100%)' }}
-            />
+            <div className="h-20 rounded-lg"
+              style={{ background: 'linear-gradient(90deg,#086788 0%,#21bdc8 100%)' }} />
             <Label>--gradient-brand-h (horizontal)</Label>
           </div>
         </div>
@@ -116,20 +101,17 @@ export default function StyleGuidePage() {
 
       <Section title="Neutral Scale">
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-          {[
-            ['#f9fafb', '50'],
-            ['#f3f4f6', '100'],
-            ['#e5e7eb', '200'],
-            ['#d1d5db', '300'],
-            ['#9ca3af', '400'],
-            ['#6b7280', '500'],
-            ['#4b5563', '600'],
-            ['#374151', '700'],
-            ['#1f2937', '800'],
-            ['#111827', '900'],
-          ].map(([hex, step]) => (
-            <Swatch key={step} bg={hex} label={`gray-${step}`} light={Number(step) < 400} />
-          ))}
+          {(['50','100','200','300','400','500','600','700','800','900'] as const).map((step) => {
+            const hexMap: Record<string, string> = {
+              '50':'#f9fafb','100':'#f3f4f6','200':'#e5e7eb','300':'#d1d5db',
+              '400':'#9ca3af','500':'#6b7280','600':'#4b5563','700':'#374151',
+              '800':'#1f2937','900':'#111827',
+            }
+            return (
+              <Swatch key={step} bg={hexMap[step]} label={`gray-${step}`}
+                      light={Number(step) < 400} />
+            )
+          })}
         </div>
       </Section>
 
@@ -149,23 +131,28 @@ export default function StyleGuidePage() {
       <Section title="Typography Scale">
         <div className="space-y-4">
           {[
-            ['text-6xl', '3.75rem / 60px', 'The quick brown fox'],
-            ['text-5xl', '3rem / 48px',    'The quick brown fox'],
-            ['text-4xl', '2.25rem / 36px', 'The quick brown fox'],
-            ['text-3xl', '1.875rem / 30px','The quick brown fox'],
-            ['text-2xl', '1.5rem / 24px',  'The quick brown fox jumps'],
-            ['text-xl',  '1.25rem / 20px', 'The quick brown fox jumps over'],
-            ['text-lg',  '1.125rem / 18px','The quick brown fox jumps over the lazy dog'],
-            ['text-base','1rem / 16px',     'The quick brown fox jumps over the lazy dog — body copy'],
-            ['text-sm',  '0.875rem / 14px','The quick brown fox jumps over the lazy dog — small / captions'],
-            ['text-xs',  '0.75rem / 12px', 'The quick brown fox — labels / meta / badges'],
-          ].map(([cls, size, sample]) => (
-            <div key={cls} className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 border-b border-gray-100 pb-4">
-              <div className="w-28 shrink-0">
+            ['text-6xl','3.75rem / 60px','Display heading'],
+            ['text-5xl','3rem / 48px',   'Hero heading'],
+            ['text-4xl','2.25rem / 36px','Page title'],
+            ['text-3xl','1.875rem / 30px','Section heading'],
+            ['text-2xl','1.5rem / 24px', 'Subsection heading'],
+            ['text-xl', '1.25rem / 20px','Card heading'],
+            ['text-lg', '1.125rem / 18px','Large body'],
+            ['text-base','1rem / 16px',  'Body copy'],
+            ['text-sm', '0.875rem / 14px','Small / captions'],
+            ['text-xs', '0.75rem / 12px','Labels / meta / badges'],
+          ].map(([cls, size, label]) => (
+            <div key={cls}
+              className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6
+                         border-b border-gray-100 pb-4">
+              <div className="w-32 shrink-0">
                 <code className="text-xs text-primary bg-primary-50 px-2 py-0.5 rounded">{cls}</code>
                 <p className="text-xs text-gray-400 mt-0.5">{size}</p>
               </div>
-              <p className={`${cls} font-heading font-bold text-gray-900 leading-tight`}>{sample}</p>
+              <div>
+                <p className={`${cls} font-bold text-gray-900 leading-tight`}>{label}</p>
+                <p className={`${cls} text-gray-500`}>The quick brown fox jumps over the lazy dog</p>
+              </div>
             </div>
           ))}
         </div>
@@ -174,15 +161,17 @@ export default function StyleGuidePage() {
       <Section title="Font Weights">
         <div className="space-y-3">
           {[
-            ['font-normal',    '400', 'The quick brown fox jumps over the lazy dog'],
-            ['font-medium',    '500', 'The quick brown fox jumps over the lazy dog'],
-            ['font-semibold',  '600', 'The quick brown fox jumps over the lazy dog'],
-            ['font-bold',      '700', 'The quick brown fox jumps over the lazy dog'],
-            ['font-extrabold', '800', 'The quick brown fox jumps over the lazy dog'],
-          ].map(([cls, weight, sample]) => (
+            ['font-normal',    '400'],
+            ['font-medium',    '500'],
+            ['font-semibold',  '600'],
+            ['font-bold',      '700'],
+            ['font-extrabold', '800'],
+          ].map(([cls, weight]) => (
             <div key={cls} className="flex items-center gap-4">
               <code className="text-xs text-gray-500 font-mono w-36 shrink-0">{cls} ({weight})</code>
-              <p className={`text-base text-gray-800 ${cls}`}>{sample}</p>
+              <p className={`text-base text-gray-800 ${cls}`}>
+                The quick brown fox jumps over the lazy dog
+              </p>
             </div>
           ))}
         </div>
@@ -194,35 +183,27 @@ export default function StyleGuidePage() {
 
       <Section title="Spacing Scale">
         <div className="space-y-2">
-          {[
-            ['1',  '4px'],  ['2',  '8px'],  ['3',  '12px'], ['4',  '16px'],
-            ['5',  '20px'], ['6',  '24px'], ['8',  '32px'], ['10', '40px'],
-            ['12', '48px'], ['16', '64px'], ['20', '80px'], ['24', '96px'],
-          ].map(([step, px]) => (
+          {[['1','4px'],['2','8px'],['3','12px'],['4','16px'],['5','20px'],
+            ['6','24px'],['8','32px'],['10','40px'],['12','48px'],['16','64px'],
+            ['20','80px'],['24','96px']].map(([step, px]) => (
             <div key={step} className="flex items-center gap-4">
-              <code className="text-xs text-gray-500 font-mono w-24 shrink-0">space-{step} ({px})</code>
-              <div
-                className="h-4 bg-primary rounded"
-                style={{ width: px }}
-              />
+              <code className="text-xs text-gray-500 font-mono w-24 shrink-0">
+                space-{step} ({px})
+              </code>
+              <div className="h-4 bg-primary rounded" style={{ width: px }} />
             </div>
           ))}
         </div>
       </Section>
 
       {/* ------------------------------------------------------------------ */}
-      {/* BORDER RADIUS                                                        */}
+      {/* BORDER RADIUS + SHADOWS                                              */}
       {/* ------------------------------------------------------------------ */}
 
       <Section title="Border Radius">
         <div className="flex flex-wrap gap-6 items-end">
-          {[
-            ['rounded-sm',   '4px',    'rounded-sm'],
-            ['rounded',      '8px',    'rounded'],
-            ['rounded-lg',   '12px',   'rounded-lg'],
-            ['rounded-xl',   '16px',   'rounded-xl'],
-            ['rounded-2xl',  '24px',   'rounded-2xl'],
-            ['rounded-full', '9999px', 'rounded-full'],
+          {[['rounded-sm','4px'],['rounded','8px'],['rounded-lg','12px'],
+            ['rounded-xl','16px'],['rounded-2xl','24px'],['rounded-full','9999px']
           ].map(([cls, px]) => (
             <div key={cls} className="flex flex-col items-center gap-2">
               <div className={`w-16 h-16 bg-primary-50 border-2 border-primary ${cls}`} />
@@ -233,18 +214,10 @@ export default function StyleGuidePage() {
         </div>
       </Section>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* SHADOWS                                                              */}
-      {/* ------------------------------------------------------------------ */}
-
       <Section title="Shadows">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-          {[
-            ['shadow-sm',    'shadow-sm'],
-            ['shadow',       'shadow (md)'],
-            ['shadow-lg',    'shadow-lg'],
-            ['shadow-xl',    'shadow-xl'],
-            ['shadow-brand', 'shadow-brand'],
+          {[['shadow-sm','shadow-sm'],['shadow','shadow (md)'],['shadow-lg','shadow-lg'],
+            ['shadow-xl','shadow-xl'],['shadow-brand','shadow-brand']
           ].map(([cls, label]) => (
             <div key={cls} className="flex flex-col items-center gap-3">
               <div className={`w-full h-16 bg-white rounded-lg ${cls}`} />
@@ -255,46 +228,79 @@ export default function StyleGuidePage() {
       </Section>
 
       {/* ------------------------------------------------------------------ */}
-      {/* BUTTONS                                                              */}
+      {/* BUTTON COMPONENT                                                     */}
       {/* ------------------------------------------------------------------ */}
 
-      <Section title="Button Patterns">
+      <Section title="Button Component">
         <p className="text-sm text-gray-500 mb-6">
-          Reference patterns — full Button component built in step 04.
+          <code className="bg-gray-100 px-1.5 py-0.5 rounded">src/components/ui/Button.tsx</code>
+          {' '}— variants × sizes. Renders as{' '}
+          <code className="bg-gray-100 px-1.5 py-0.5 rounded">&lt;button&gt;</code>,{' '}
+          <code className="bg-gray-100 px-1.5 py-0.5 rounded">&lt;a&gt;</code>, or{' '}
+          <code className="bg-gray-100 px-1.5 py-0.5 rounded">&lt;Link&gt;</code> based on{' '}
+          <code className="bg-gray-100 px-1.5 py-0.5 rounded">href</code>.
         </p>
-        <div className="flex flex-wrap gap-4 items-center">
-          {/* Primary */}
-          <button className="px-5 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors duration-200 text-sm">
-            Primary CTA
-          </button>
-          {/* Secondary */}
-          <button className="px-5 py-2.5 bg-secondary text-white font-semibold rounded-lg hover:bg-secondary-dark transition-colors duration-200 text-sm">
-            Secondary
-          </button>
-          {/* Accent */}
-          <button className="px-5 py-2.5 bg-accent text-gray-900 font-semibold rounded-lg hover:bg-accent-dark transition-colors duration-200 text-sm">
-            Accent
-          </button>
-          {/* Outline */}
-          <button className="px-5 py-2.5 border-2 border-primary text-primary font-semibold rounded-lg hover:bg-primary-50 transition-colors duration-200 text-sm">
-            Outline
-          </button>
-          {/* Ghost */}
-          <button className="px-5 py-2.5 text-primary font-semibold rounded-lg hover:bg-primary-50 transition-colors duration-200 text-sm">
-            Ghost
-          </button>
-          {/* Disabled */}
-          <button disabled className="px-5 py-2.5 bg-gray-200 text-gray-400 font-semibold rounded-lg cursor-not-allowed text-sm">
-            Disabled
-          </button>
-        </div>
 
-        {/* Sizes */}
-        <div className="flex flex-wrap gap-4 items-center mt-6">
-          <button className="px-3 py-1.5 bg-primary text-white font-semibold rounded text-xs">Small</button>
-          <button className="px-5 py-2.5 bg-primary text-white font-semibold rounded-lg text-sm">Medium</button>
-          <button className="px-8 py-3.5 bg-primary text-white font-semibold rounded-lg text-base">Large</button>
-          <button className="px-10 py-4 bg-primary text-white font-bold rounded-xl text-lg">X-Large CTA</button>
+        {/* Variants */}
+        <div className="space-y-6">
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Variants</p>
+            <div className="flex flex-wrap gap-3 items-center">
+              <Button variant="primary">Primary</Button>
+              <Button variant="secondary">Secondary</Button>
+              <Button variant="accent">Accent</Button>
+              <Button variant="outline">Outline</Button>
+              <Button variant="ghost">Ghost</Button>
+              <Button variant="primary" disabled>Disabled</Button>
+            </div>
+          </div>
+
+          {/* Sizes */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Sizes</p>
+            <div className="flex flex-wrap gap-3 items-center">
+              <Button size="sm">Small</Button>
+              <Button size="md">Medium</Button>
+              <Button size="lg">Large</Button>
+            </div>
+          </div>
+
+          {/* As link */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+              As Link (href prop)
+            </p>
+            <div className="flex flex-wrap gap-3 items-center">
+              <Button href="/contact">Internal Link</Button>
+              <Button href="https://example.com" variant="outline">External Link ↗</Button>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* SECTION HEADING COMPONENT                                            */}
+      {/* ------------------------------------------------------------------ */}
+
+      <Section title="SectionHeading Component">
+        <p className="text-sm text-gray-500 mb-8">
+          <code className="bg-gray-100 px-1.5 py-0.5 rounded">src/components/ui/SectionHeading.tsx</code>
+        </p>
+        <div className="space-y-12">
+          <div className="p-8 bg-gray-50 rounded-xl">
+            <SectionHeading
+              eyebrow="Our Services"
+              heading="Centered with eyebrow and subheading"
+              subheading="This is the optional supporting paragraph that adds context below the main heading."
+            />
+          </div>
+          <div className="p-8 bg-gray-50 rounded-xl">
+            <SectionHeading
+              heading="Left-aligned, no eyebrow"
+              subheading="Left-aligned variant used inside content sections or two-column layouts."
+              align="left"
+            />
+          </div>
         </div>
       </Section>
 
@@ -315,7 +321,140 @@ export default function StyleGuidePage() {
       </Section>
 
       {/* ------------------------------------------------------------------ */}
-      {/* PROSE PREVIEW                                                        */}
+      {/* CARDS                                                                */}
+      {/* ------------------------------------------------------------------ */}
+
+      <Section title="Cards">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {/* Default card */}
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <span className="text-xs font-semibold text-primary bg-primary-50 px-2 py-0.5 rounded-full">Category</span>
+            <h3 className="text-lg font-bold text-gray-900 mt-3 mb-2">Default Card</h3>
+            <p className="text-sm text-gray-500">Border + shadow-sm. Used for blog post cards and content listings.</p>
+          </div>
+          {/* Elevated card */}
+          <div className="rounded-xl bg-white p-6 shadow-lg">
+            <span className="text-xs font-semibold text-secondary-dark bg-secondary-50 px-2 py-0.5 rounded-full">Featured</span>
+            <h3 className="text-lg font-bold text-gray-900 mt-3 mb-2">Elevated Card</h3>
+            <p className="text-sm text-gray-500">Shadow-lg, no border. Used for featured/highlighted content.</p>
+          </div>
+          {/* Brand card */}
+          <div className="rounded-xl bg-primary p-6 text-white shadow-brand">
+            <span className="text-xs font-semibold text-primary-50 bg-white/20 px-2 py-0.5 rounded-full">CTA</span>
+            <h3 className="text-lg font-bold mt-3 mb-2">Brand Card</h3>
+            <p className="text-sm text-primary-50">Primary background with brand shadow. Used for CTAs.</p>
+          </div>
+        </div>
+      </Section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* ALERTS                                                               */}
+      {/* ------------------------------------------------------------------ */}
+
+      <Section title="Alerts">
+        <div className="space-y-3">
+          {[
+            ['Success', 'bg-success-light border-success text-success', 'Your changes have been saved successfully.'],
+            ['Warning', 'bg-warning-light border-warning text-warning', 'Your account will expire in 3 days.'],
+            ['Error',   'bg-error-light border-error text-error',       'There was a problem processing your request.'],
+            ['Info',    'bg-info-light border-info text-info',          'A new version of the application is available.'],
+          ].map(([label, classes, msg]) => (
+            <div key={label} className={`flex gap-3 p-4 rounded-lg border-l-4 ${classes}`}>
+              <span className="font-semibold text-sm">{label}:</span>
+              <span className="text-sm">{msg}</span>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* FORM ELEMENTS                                                        */}
+      {/* ------------------------------------------------------------------ */}
+
+      <Section title="Form Elements">
+        <div className="max-w-lg space-y-5">
+          {/* Text input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Text Input — default
+            </label>
+            <input
+              type="text"
+              placeholder="Enter your name"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm
+                         text-gray-900 placeholder-gray-400 bg-white
+                         focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+                         transition-colors duration-200"
+            />
+          </div>
+
+          {/* Input — error state */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Text Input — error state
+            </label>
+            <input
+              type="email"
+              defaultValue="not-an-email"
+              className="w-full px-4 py-2.5 rounded-lg border border-error text-sm
+                         text-gray-900 bg-white
+                         focus:outline-none focus:ring-2 focus:ring-error focus:border-transparent"
+            />
+            <p className="mt-1.5 text-xs text-error">Please enter a valid email address.</p>
+          </div>
+
+          {/* Textarea */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Textarea
+            </label>
+            <textarea
+              placeholder="Enter your message…"
+              rows={4}
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm
+                         text-gray-900 placeholder-gray-400 bg-white resize-y
+                         focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+                         transition-colors duration-200"
+            />
+          </div>
+
+          {/* Select */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Select
+            </label>
+            <select
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm
+                         text-gray-900 bg-white
+                         focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+                         transition-colors duration-200"
+            >
+              <option value="">Choose an option…</option>
+              <option>Option One</option>
+              <option>Option Two</option>
+              <option>Option Three</option>
+            </select>
+          </div>
+
+          {/* Checkbox */}
+          <div className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              id="sg-checkbox"
+              defaultChecked
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary
+                         focus:ring-primary focus:ring-offset-0"
+            />
+            <label htmlFor="sg-checkbox" className="text-sm text-gray-700">
+              I agree to the{' '}
+              <a href="/privacy-policy" className="text-primary underline">Privacy Policy</a>
+            </label>
+          </div>
+        </div>
+      </Section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* PROSE / RICH TEXT                                                    */}
       {/* ------------------------------------------------------------------ */}
 
       <Section title="Prose / Rich Text">
@@ -324,22 +463,58 @@ export default function StyleGuidePage() {
           <h3>H3 Sub-heading — Supporting Detail</h3>
           <p>
             Body copy at 1rem / 16px with relaxed line-height. Lorem ipsum dolor sit amet,
-            consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
-            magna aliqua. <a href="#">This is an inline link</a> that opens in a new tab.
-            <strong> Bold text for emphasis.</strong>
+            consectetur adipiscing elit.{' '}
+            <a href="#">This is an inline link</a> that opens in a new tab.
+            <strong> Bold for emphasis.</strong>
           </p>
           <ul>
             <li>Unordered list item one</li>
-            <li>Unordered list item two with more copy to test wrapping behaviour</li>
+            <li>Unordered list item two with more copy to test wrapping</li>
             <li>Unordered list item three</li>
           </ul>
           <blockquote>
-            A blockquote sits here with a left border using the brand primary colour.
+            A blockquote with the brand primary left border.
           </blockquote>
-          <p>
-            Inline <code>code snippet</code> and a standalone code block below.
-          </p>
+          <p>Inline <code>code snippet</code> and a block below.</p>
           <pre><code>npm install @contentful/rich-text-react-renderer</code></pre>
+        </div>
+      </Section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* BREAKPOINTS                                                          */}
+      {/* ------------------------------------------------------------------ */}
+
+      <Section title="Breakpoints">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="py-3 pr-6 font-semibold text-gray-700">Prefix</th>
+                <th className="py-3 pr-6 font-semibold text-gray-700">Min width</th>
+                <th className="py-3 font-semibold text-gray-700">Tailwind default</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {[
+                ['(none)',  '0px',    'All screen sizes'],
+                ['sm',     '640px',  'Small devices and up'],
+                ['md',     '768px',  'Tablets and up'],
+                ['lg',     '1024px', 'Desktops and up'],
+                ['xl',     '1280px', 'Wide desktops and up (--max-width)'],
+                ['2xl',    '1536px', 'Extra wide screens'],
+              ].map(([prefix, px, note]) => (
+                <tr key={prefix}>
+                  <td className="py-3 pr-6">
+                    <code className="text-xs bg-primary-50 text-primary px-2 py-0.5 rounded">
+                      {prefix}:
+                    </code>
+                  </td>
+                  <td className="py-3 pr-6 font-mono text-gray-600">{px}</td>
+                  <td className="py-3 text-gray-500">{note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </Section>
 
@@ -348,6 +523,6 @@ export default function StyleGuidePage() {
           ThinkBiz Style Guide — internal only — {new Date().getFullYear()}
         </p>
       </footer>
-    </main>
+    </Container>
   )
 }
