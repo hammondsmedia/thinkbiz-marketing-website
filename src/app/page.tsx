@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Container from '@/components/ui/Container'
 import Button from '@/components/ui/Button'
 import SectionHeading from '@/components/ui/SectionHeading'
-import BlogCard from '@/components/ui/BlogCard'
+import BlogCard from '@/components/blog/BlogCard'
 import WebPageSchema from '@/components/seo/WebPageSchema'
 import { getAllBlogPosts } from '@/lib/contentful'
 
