@@ -3,7 +3,6 @@
 import { useState, useRef, FormEvent } from 'react'
 import Script from 'next/script'
 
-// Minimal grecaptcha global declaration
 declare global {
   interface Window {
     grecaptcha: {
@@ -20,19 +19,41 @@ interface FormState {
 
 const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? ''
 
+// Simple email regex
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export default function ContactForm() {
   const [state, setState] = useState<FormState>({ status: 'idle', errorMessage: '' })
   const formRef = useRef<HTMLFormElement>(null)
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setState({ status: 'submitting', errorMessage: '' })
 
     const form = e.currentTarget
     const data = new FormData(form)
+    const name = (data.get('name') as string).trim()
+    const email = (data.get('email') as string).trim()
+    const phone = (data.get('phone') as string).trim()
+    const message = (data.get('message') as string).trim()
+
+    // ── Client-side validation ──────────────────────────────────────────────
+    if (!name) {
+      setState({ status: 'error', errorMessage: 'Please enter your full name.' })
+      return
+    }
+    if (!email || !EMAIL_RE.test(email)) {
+      setState({ status: 'error', errorMessage: 'Please enter a valid email address.' })
+      return
+    }
+    if (!message) {
+      setState({ status: 'error', errorMessage: 'Please tell us how we can help.' })
+      return
+    }
+
+    setState({ status: 'submitting', errorMessage: '' })
 
     try {
-      // Get reCAPTCHA v3 token (invisible)
+      // ── reCAPTCHA v3 token ──────────────────────────────────────────────
       const recaptchaToken = await new Promise<string>((resolve, reject) => {
         window.grecaptcha.ready(() => {
           window.grecaptcha
@@ -42,18 +63,10 @@ export default function ContactForm() {
         })
       })
 
-      const payload = {
-        name: data.get('name') as string,
-        email: data.get('email') as string,
-        phone: data.get('phone') as string,
-        message: data.get('message') as string,
-        recaptchaToken,
-      }
-
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ name, email, phone: phone || undefined, message, recaptchaToken }),
       })
 
       if (!res.ok) {
@@ -66,14 +79,14 @@ export default function ContactForm() {
     } catch (err) {
       setState({
         status: 'error',
-        errorMessage: err instanceof Error ? err.message : 'Something went wrong. Please try again.',
+        errorMessage:
+          err instanceof Error ? err.message : 'Something went wrong. Please try again.',
       })
     }
   }
 
   return (
     <>
-      {/* Load reCAPTCHA v3 — invisible, no badge shown to end user */}
       {SITE_KEY && (
         <Script
           src={`https://www.google.com/recaptcha/api.js?render=${SITE_KEY}`}
@@ -82,16 +95,17 @@ export default function ContactForm() {
       )}
 
       {state.status === 'success' ? (
-        <div className="rounded-xl bg-success-light border border-success p-8 text-center">
+        <div className="rounded-xl bg-green-50 border border-green-200 p-8 text-center">
           <svg
-            className="mx-auto mb-4 h-12 w-12 text-success"
+            className="mx-auto mb-4 h-12 w-12 text-green-500"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth={2}
             aria-hidden="true"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Message sent!</h3>
           <p className="text-gray-600">
@@ -102,11 +116,11 @@ export default function ContactForm() {
         <form ref={formRef} onSubmit={handleSubmit} noValidate className="space-y-5">
           {/* Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Full name <span className="text-error" aria-hidden="true">*</span>
+            <label htmlFor="cf-name" className="block text-sm font-medium text-gray-700 mb-1">
+              Full name <span className="text-red-500" aria-hidden="true">*</span>
             </label>
             <input
-              id="name"
+              id="cf-name"
               name="name"
               type="text"
               required
@@ -120,11 +134,11 @@ export default function ContactForm() {
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Work email <span className="text-error" aria-hidden="true">*</span>
+            <label htmlFor="cf-email" className="block text-sm font-medium text-gray-700 mb-1">
+              Work email <span className="text-red-500" aria-hidden="true">*</span>
             </label>
             <input
-              id="email"
+              id="cf-email"
               name="email"
               type="email"
               required
@@ -138,11 +152,12 @@ export default function ContactForm() {
 
           {/* Phone */}
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone <span className="text-gray-400 font-normal">(optional)</span>
+            <label htmlFor="cf-phone" className="block text-sm font-medium text-gray-700 mb-1">
+              Phone{' '}
+              <span className="text-gray-400 font-normal">(optional)</span>
             </label>
             <input
-              id="phone"
+              id="cf-phone"
               name="phone"
               type="tel"
               autoComplete="tel"
@@ -155,11 +170,11 @@ export default function ContactForm() {
 
           {/* Message */}
           <div>
-            <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-              How can we help? <span className="text-error" aria-hidden="true">*</span>
+            <label htmlFor="cf-message" className="block text-sm font-medium text-gray-700 mb-1">
+              How can we help? <span className="text-red-500" aria-hidden="true">*</span>
             </label>
             <textarea
-              id="message"
+              id="cf-message"
               name="message"
               required
               rows={5}
@@ -172,7 +187,10 @@ export default function ContactForm() {
 
           {/* Error */}
           {state.status === 'error' && (
-            <p role="alert" className="rounded-lg bg-error-light border border-error px-4 py-3 text-sm text-error">
+            <p
+              role="alert"
+              className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"
+            >
               {state.errorMessage}
             </p>
           )}
@@ -182,7 +200,8 @@ export default function ContactForm() {
             disabled={state.status === 'submitting'}
             className="w-full rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white
                        transition-colors duration-200 hover:bg-primary-dark
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
+                       focus-visible:outline-none focus-visible:ring-2
+                       focus-visible:ring-primary focus-visible:ring-offset-2
                        disabled:cursor-not-allowed disabled:opacity-60"
           >
             {state.status === 'submitting' ? 'Sending…' : 'Send message'}
@@ -190,11 +209,21 @@ export default function ContactForm() {
 
           <p className="text-xs text-gray-400 text-center">
             Protected by reCAPTCHA.{' '}
-            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">
+            <a
+              href="https://policies.google.com/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-gray-600"
+            >
               Privacy
             </a>{' '}
             &amp;{' '}
-            <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">
+            <a
+              href="https://policies.google.com/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-gray-600"
+            >
               Terms
             </a>
             .

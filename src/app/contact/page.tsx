@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Container from '@/components/ui/Container'
 import BreadcrumbSchema from '@/components/seo/BreadcrumbSchema'
 import WebPageSchema from '@/components/seo/WebPageSchema'
-import ContactForm from '@/components/contact/ContactForm'
+import ContactForm from '@/components/ui/ContactForm'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 

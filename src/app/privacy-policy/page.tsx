@@ -9,12 +9,16 @@ const PAGE_TITLE = 'Privacy Policy | ThinkBiz'
 const PAGE_DESCRIPTION =
   'Read the ThinkBiz Privacy Policy to understand how we collect, use, and protect your personal information.'
 
+const POLICY_VERSION = '1.0'
+const LAST_UPDATED = '2025-01-01'
+
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
     alternates: { canonical: `${SITE_URL}/privacy-policy` },
-    robots: { index: true, follow: true },
+    // noindex per spec — legal page shouldn't appear in search results
+    robots: { index: false, follow: true },
     openGraph: {
       title: PAGE_TITLE,
       description: PAGE_DESCRIPTION,
@@ -23,8 +27,6 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   }
 }
-
-const LAST_UPDATED = '2025-01-01'
 
 export default function PrivacyPolicyPage() {
   return (
@@ -39,13 +41,14 @@ export default function PrivacyPolicyPage() {
       <section className="py-16 sm:py-24">
         <Container padding="narrow">
           <div className="max-w-[var(--content-width)] mx-auto">
+
             {/* Header */}
             <div className="mb-10 pb-8 border-b border-gray-200">
               <h1 className="text-4xl font-bold text-gray-900 leading-tight mb-3">
                 Privacy Policy
               </h1>
               <p className="text-sm text-gray-400">
-                Last updated:{' '}
+                Version {POLICY_VERSION} &mdash; Last updated:{' '}
                 <time dateTime={LAST_UPDATED}>
                   {new Date(LAST_UPDATED).toLocaleDateString('en-GB', {
                     day: 'numeric',
@@ -58,139 +61,169 @@ export default function PrivacyPolicyPage() {
 
             {/* Content */}
             <div className="prose">
+
+              {/* 1. Introduction */}
+              <h2>Introduction</h2>
               <p>
-                This Privacy Policy explains how ThinkBiz (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or
-                &ldquo;our&rdquo;) collects, uses, and protects information you provide when
-                visiting <strong>PLACEHOLDER_DOMAIN</strong> (the &ldquo;Site&rdquo;). By using the
-                Site you agree to the practices described here.
+                ThinkBiz (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) is committed
+                to protecting your privacy. This Privacy Policy explains how we collect, use,
+                disclose, and safeguard your information when you visit{' '}
+                <strong>PLACEHOLDER_DOMAIN</strong> (the &ldquo;Site&rdquo;) or contact us
+                through the Site.
+              </p>
+              <p>
+                By using the Site, you agree to the collection and use of information in
+                accordance with this policy. If you do not agree, please do not use the Site.
               </p>
 
-              <h2>1. Information we collect</h2>
-              <p>We may collect the following types of information:</p>
+              {/* 2. Data Collection */}
+              <h2>Data Collection</h2>
+              <p>We collect information in the following ways:</p>
+              <h3>Information you provide directly</h3>
               <ul>
                 <li>
-                  <strong>Contact form data</strong> — name, email address, phone number, and
-                  message content when you submit our contact form.
-                </li>
-                <li>
-                  <strong>Usage data</strong> — pages visited, time on page, referring URL,
-                  browser type, and device type, collected automatically via analytics tools.
-                </li>
-                <li>
-                  <strong>Cookies and similar technologies</strong> — see Section 5 for details.
+                  <strong>Contact form submissions</strong> — your name, email address, phone
+                  number (optional), and message when you use our contact form.
                 </li>
               </ul>
+              <h3>Information collected automatically</h3>
+              <ul>
+                <li>
+                  <strong>Usage data</strong> — pages visited, time spent on pages, referring
+                  URL, browser type, device type, and IP address (anonymised where possible).
+                </li>
+                <li>
+                  <strong>Cookies and similar technologies</strong> — small files placed on
+                  your device. We use strictly necessary cookies for site operation and, with
+                  your consent, analytics cookies to understand how visitors use the Site.
+                </li>
+              </ul>
+              <p>
+                You can manage cookie preferences via the consent banner that appears on your
+                first visit, or by clicking &ldquo;Cookie Settings&rdquo; at any time. Strictly
+                necessary cookies cannot be disabled as they are essential for the Site to
+                function.
+              </p>
 
-              <h2>2. How we use your information</h2>
+              {/* 3. Use of Your Data */}
+              <h2>Use of Your Data</h2>
               <p>We use the information we collect to:</p>
               <ul>
                 <li>Respond to your enquiries and provide the services you request.</li>
                 <li>Improve the Site, its content, and user experience.</li>
-                <li>Understand how visitors use the Site (analytics).</li>
+                <li>
+                  Analyse how visitors use the Site in aggregate (analytics), subject to your
+                  consent.
+                </li>
+                <li>Protect the security and integrity of the Site (bot protection).</li>
                 <li>Comply with applicable legal obligations.</li>
               </ul>
-              <p>We do not sell, rent, or share your personal data with third parties for their
-              own marketing purposes.</p>
-
-              <h2>3. Legal basis for processing (UK &amp; EU residents)</h2>
               <p>
-                Where the UK GDPR or EU GDPR applies, our legal bases for processing personal
-                data are:
-              </p>
-              <ul>
-                <li><strong>Contract</strong> — where processing is necessary to fulfil a service you requested.</li>
-                <li><strong>Legitimate interests</strong> — for analytics and site improvement, balanced against your rights.</li>
-                <li><strong>Consent</strong> — where we have obtained your explicit consent (e.g. optional marketing).</li>
-                <li><strong>Legal obligation</strong> — where processing is required by law.</li>
-              </ul>
-
-              <h2>4. Data retention</h2>
-              <p>
-                Contact form submissions are retained for up to 3 years or until you request
-                deletion. Analytics data is retained in accordance with the respective tool&apos;s
-                default retention settings. You may request deletion of your personal data at
-                any time by emailing <a href="mailto:PLACEHOLDER_EMAIL">PLACEHOLDER_EMAIL</a>.
+                We will only process your personal data for the purposes set out above, or for
+                a compatible purpose. We will not use your data for unsolicited direct marketing
+                without your explicit consent.
               </p>
 
-              <h2>5. Cookies</h2>
+              {/* 4. Data Sharing */}
+              <h2>Data Sharing</h2>
               <p>
-                We use cookies and similar technologies for analytics and functionality. You
-                can manage your cookie preferences via our cookie consent banner (powered by
-                CookieYes) at any time. Strictly necessary cookies cannot be disabled as they
-                are required for the Site to function correctly.
+                We do not sell, rent, or trade your personal data. We may share information
+                with trusted third-party service providers who assist us in operating the Site
+                and conducting our business, provided those parties agree to keep it
+                confidential. These providers include:
               </p>
-              <p>Categories of cookies we may use:</p>
               <ul>
-                <li><strong>Strictly necessary</strong> — essential for site operation.</li>
-                <li><strong>Analytics</strong> — Google Analytics 4 and Microsoft Clarity to understand site usage (only set after consent).</li>
-                <li><strong>Marketing</strong> — not currently used.</li>
-              </ul>
-
-              <h2>6. Third-party services</h2>
-              <p>We use the following third-party services that may process data on our behalf:</p>
-              <ul>
-                <li><strong>Google Analytics 4 &amp; Google Tag Manager</strong> — analytics and tag management.</li>
+                <li><strong>Contentful</strong> — stores contact form submissions (CMS).</li>
+                <li>
+                  <strong>Google (Analytics 4, Tag Manager, reCAPTCHA v3)</strong> — analytics,
+                  tag management, and bot protection.
+                </li>
                 <li><strong>Microsoft Clarity</strong> — session recording and heatmaps.</li>
                 <li><strong>Mixpanel</strong> — product analytics.</li>
-                <li><strong>Google reCAPTCHA v3</strong> — bot protection on forms.</li>
                 <li><strong>CookieYes</strong> — cookie consent management.</li>
-                <li><strong>Contentful</strong> — headless CMS (form submission storage).</li>
-                <li><strong>Vercel</strong> — hosting and edge network.</li>
+                <li><strong>Vercel</strong> — hosting and edge delivery.</li>
               </ul>
               <p>
-                Each provider operates under its own privacy policy and, where applicable,
-                a data processing agreement with us.
+                We may also disclose your information where required by law, or to protect our
+                rights, property, or safety, or that of others.
               </p>
 
-              <h2>7. Your rights</h2>
+              {/* 5. Data Security */}
+              <h2>Data Security</h2>
               <p>
-                Depending on your location, you may have the right to access, correct, delete,
-                or restrict the processing of your personal data. You may also have the right to
-                data portability and to object to certain processing. To exercise any of these
-                rights, contact us at <a href="mailto:PLACEHOLDER_EMAIL">PLACEHOLDER_EMAIL</a>.
+                We implement appropriate technical and organisational security measures to
+                protect your personal data against unauthorised access, alteration, disclosure,
+                or destruction. All data transmitted between your browser and the Site is
+                encrypted via HTTPS/TLS.
+              </p>
+              <p>
+                Contact form submissions are protected by Google reCAPTCHA v3 to prevent
+                automated abuse. However, no method of transmission over the internet or
+                electronic storage is 100% secure, and we cannot guarantee absolute security.
+              </p>
+              <p>
+                We retain contact form submissions for up to three years, after which they are
+                deleted. Analytics data is retained in accordance with each provider&apos;s
+                default retention settings.
               </p>
 
-              <h2>8. Data transfers</h2>
+              {/* 6. Your Privacy Rights */}
+              <h2>Your Privacy Rights</h2>
               <p>
-                Some of our third-party providers may transfer and process data outside the UK
-                or European Economic Area. Where this occurs, we ensure appropriate safeguards
-                are in place (e.g. Standard Contractual Clauses).
+                Depending on your location, you may have rights under applicable privacy law
+                (including the UK GDPR and EU GDPR). These may include the right to:
+              </p>
+              <ul>
+                <li><strong>Access</strong> — request a copy of the personal data we hold about you.</li>
+                <li><strong>Correction</strong> — request that inaccurate data be corrected.</li>
+                <li><strong>Erasure</strong> — request deletion of your personal data (&ldquo;right to be forgotten&rdquo;).</li>
+                <li><strong>Restriction</strong> — request that we restrict processing of your data.</li>
+                <li><strong>Portability</strong> — receive your data in a structured, machine-readable format.</li>
+                <li><strong>Objection</strong> — object to processing based on legitimate interests.</li>
+                <li><strong>Withdraw consent</strong> — withdraw any consent you have given at any time.</li>
+              </ul>
+              <p>
+                To exercise any of these rights, contact us at{' '}
+                <a href="mailto:PLACEHOLDER_EMAIL">PLACEHOLDER_EMAIL</a>. We will respond
+                within 30 days. If you believe we have not handled your request appropriately,
+                you have the right to lodge a complaint with the relevant supervisory authority
+                (in the UK: the ICO at{' '}
+                <a
+                  href="https://ico.org.uk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  ico.org.uk
+                </a>
+                ).
               </p>
 
-              <h2>9. Security</h2>
+              {/* 7. Changes to This Policy */}
+              <h2>Changes to This Policy</h2>
               <p>
-                We implement appropriate technical and organisational measures to protect your
-                data against unauthorised access, loss, or misuse. All data is transmitted
-                over HTTPS/TLS. However, no transmission over the internet can be guaranteed
-                to be 100% secure.
+                We may update this Privacy Policy from time to time. When we do, we will
+                revise the &ldquo;Last updated&rdquo; date and version number at the top of
+                this page. We encourage you to review this page periodically to stay informed
+                about how we protect your information. Continued use of the Site after any
+                changes constitutes your acceptance of the updated policy.
               </p>
 
-              <h2>10. Children&apos;s privacy</h2>
+              {/* 8. Contact Us */}
+              <h2>Contact Us</h2>
               <p>
-                Our Site is not directed at children under the age of 16. We do not knowingly
-                collect personal data from children. If you believe a child has provided us
-                with personal data, please contact us and we will delete it.
-              </p>
-
-              <h2>11. Changes to this policy</h2>
-              <p>
-                We may update this Privacy Policy periodically. When we do, we will update the
-                &ldquo;Last updated&rdquo; date at the top of this page. We encourage you to
-                review this page from time to time.
-              </p>
-
-              <h2>12. Contact us</h2>
-              <p>
-                If you have questions about this Privacy Policy or how we handle your data,
-                please contact us:
+                If you have any questions about this Privacy Policy, or wish to exercise your
+                privacy rights, please contact us:
               </p>
               <ul>
                 <li>
                   <strong>Email:</strong>{' '}
                   <a href="mailto:PLACEHOLDER_EMAIL">PLACEHOLDER_EMAIL</a>
                 </li>
-                <li><strong>Post:</strong> PLACEHOLDER_ADDRESS</li>
+                <li>
+                  <strong>Post:</strong> ThinkBiz, PLACEHOLDER_ADDRESS
+                </li>
               </ul>
+
             </div>
           </div>
         </Container>
