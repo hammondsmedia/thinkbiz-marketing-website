@@ -5,6 +5,7 @@ const client = createClient({
   space: process.env.CONTENTFUL_SPACE_ID!,
   accessToken: process.env.CONTENTFUL_ACCESS_TOKEN!,
   environment: process.env.CONTENTFUL_ENVIRONMENT ?? 'master',
+  retryOnError: false, // fail fast — lets try/catch return [] without build timeouts
 })
 
 const previewClient = createClient({
@@ -12,6 +13,7 @@ const previewClient = createClient({
   accessToken: process.env.CONTENTFUL_PREVIEW_TOKEN!,
   host: 'preview.contentful.com',
   environment: process.env.CONTENTFUL_ENVIRONMENT ?? 'master',
+  retryOnError: false,
 })
 
 export { client, previewClient }
