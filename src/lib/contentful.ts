@@ -1,22 +1,37 @@
 import { createClient } from 'contentful'
+import type { ContentfulClientApi } from 'contentful'
 import type { BlogPostSkeleton, AuthorSkeleton, BlogPost, Author } from './types'
 
-const client = createClient({
-  space: process.env.CONTENTFUL_SPACE_ID!,
-  accessToken: process.env.CONTENTFUL_ACCESS_TOKEN!,
-  environment: process.env.CONTENTFUL_ENVIRONMENT ?? 'master',
-  retryOnError: false, // fail fast — lets try/catch return [] without build timeouts
-})
+// Lazy singletons — defer createClient() so that empty/invalid env vars don't
+// throw synchronously at module-import time (which breaks the Next.js build).
+// All callers already have try/catch, so a throw inside getClient() is safe.
+let _client: ContentfulClientApi<undefined> | null = null
+let _previewClient: ContentfulClientApi<undefined> | null = null
 
-const previewClient = createClient({
-  space: process.env.CONTENTFUL_SPACE_ID!,
-  accessToken: process.env.CONTENTFUL_PREVIEW_TOKEN!,
-  host: 'preview.contentful.com',
-  environment: process.env.CONTENTFUL_ENVIRONMENT ?? 'master',
-  retryOnError: false,
-})
+function getClient(): ContentfulClientApi<undefined> {
+  if (!_client) {
+    _client = createClient({
+      space: process.env.CONTENTFUL_SPACE_ID!,
+      accessToken: process.env.CONTENTFUL_ACCESS_TOKEN!,
+      environment: process.env.CONTENTFUL_ENVIRONMENT ?? 'master',
+      retryOnError: false,
+    })
+  }
+  return _client
+}
 
-export { client, previewClient }
+function getPreviewClient(): ContentfulClientApi<undefined> {
+  if (!_previewClient) {
+    _previewClient = createClient({
+      space: process.env.CONTENTFUL_SPACE_ID!,
+      accessToken: process.env.CONTENTFUL_PREVIEW_TOKEN!,
+      host: 'preview.contentful.com',
+      environment: process.env.CONTENTFUL_ENVIRONMENT ?? 'master',
+      retryOnError: false,
+    })
+  }
+  return _previewClient
+}
 
 // ---------------------------------------------------------------------------
 // Blog posts
@@ -24,7 +39,7 @@ export { client, previewClient }
 
 export async function getAllBlogPosts(): Promise<BlogPost[]> {
   try {
-    const response = await client.getEntries<BlogPostSkeleton>({
+    const response = await getClient().getEntries<BlogPostSkeleton>({
       content_type: 'blogPost',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       order: ['-fields.publishDate' as any],
@@ -38,7 +53,7 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
   try {
-    const response = await client.getEntries<BlogPostSkeleton>({
+    const response = await getClient().getEntries<BlogPostSkeleton>({
       content_type: 'blogPost',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       'fields.slug': slug as any,
@@ -57,7 +72,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
 
 export async function getAllAuthors(): Promise<Author[]> {
   try {
-    const response = await client.getEntries<AuthorSkeleton>({
+    const response = await getClient().getEntries<AuthorSkeleton>({
       content_type: 'author',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       order: ['fields.name' as any],
@@ -71,7 +86,7 @@ export async function getAllAuthors(): Promise<Author[]> {
 
 export async function getAuthorBySlug(slug: string): Promise<Author | null> {
   try {
-    const response = await client.getEntries<AuthorSkeleton>({
+    const response = await getClient().getEntries<AuthorSkeleton>({
       content_type: 'author',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       'fields.slug': slug as any,
@@ -85,7 +100,7 @@ export async function getAuthorBySlug(slug: string): Promise<Author | null> {
 
 export async function getPostsByAuthor(authorId: string): Promise<BlogPost[]> {
   try {
-    const response = await client.getEntries<BlogPostSkeleton>({
+    const response = await getClient().getEntries<BlogPostSkeleton>({
       content_type: 'blogPost',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       'fields.author.sys.id': authorId as any,
@@ -114,7 +129,7 @@ export async function getRelatedPosts(
   // 1. Manual overrides by entry ID
   if (manualRelatedIds.length > 0) {
     try {
-      const manual = await client.getEntries<BlogPostSkeleton>({
+      const manual = await getClient().getEntries<BlogPostSkeleton>({
         content_type: 'blogPost',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         'sys.id[in]': manualRelatedIds.join(',') as any,
@@ -132,7 +147,7 @@ export async function getRelatedPosts(
   // 2. Tag matches to fill remaining slots
   if (result.length < 3 && tags.length > 0) {
     try {
-      const tagMatches = await client.getEntries<BlogPostSkeleton>({
+      const tagMatches = await getClient().getEntries<BlogPostSkeleton>({
         content_type: 'blogPost',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         'fields.tags[in]': tags.join(',') as any,
@@ -154,3 +169,6 @@ export async function getRelatedPosts(
 
   return result.slice(0, 3)
 }
+
+// Export getPreviewClient for use in draft/preview route handlers
+export { getPreviewClient }
